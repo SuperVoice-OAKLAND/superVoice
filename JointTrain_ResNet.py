@@ -382,8 +382,6 @@ for epoch in range(N_epochs):
                 count_fr = 0
                 hframe = np.zeros([Batch_dev, 1, 86 , 75])
                 count_fr_tot = 0
-                # 对于一个句子， 每128个frame组成一个batch，输入到网络
-                # 不足128的部分， 进入下面 if count_fr > 0步骤，继续输入网络
                 while end_samp < signal.shape[0]:
                     sig_arr[count_fr, :] = signal[beg_samp:end_samp]
                     ind_beg, ind_end = sampleToind(beg_samp, end_samp)
@@ -394,8 +392,6 @@ for epoch in range(N_epochs):
                     end_samp = beg_samp + wlen
                     count_fr = count_fr + 1
                     count_fr_tot = count_fr_tot + 1
-                    # here, batch_dev 用来攒够128个frame才计算一次
-                    # 把同一个句子拆分成 一个个frame，攒够128个frame 计算一次
                     if count_fr == Batch_dev:
                         inp = Variable(sig_arr)
                         out1 = CNN_net(inp)
@@ -433,7 +429,6 @@ for epoch in range(N_epochs):
                 print(torch.sum(pout, dim=0))
 
                 [val, best_class] = torch.max(torch.sum(pout, dim=0), 0)
-                # 如果这个句子不是预测值，则err sentence count +1
                 err_sum_snt = err_sum_snt + (best_class != lab[0]).float()
                 print("Error Sentence is {}\n".format(err_sum_snt))
                 print("Predict is {}\n, label is {}\n".format(best_class, lab[0]))
@@ -447,11 +442,11 @@ for epoch in range(N_epochs):
             # frame level error for each sentence
             err_tot_dev = err_sum / snt_te
 
-        print("epoch %i, loss_tr=%f err_tr=%f loss_te=%f err_te=%f err_te_snt=%f" % (
+        print("epoch %i, Training Loss=%f Training ERR=%f EVA Loss=%f EVA ERR=%f ERR EVA SENTENCE=%f" % (
             epoch, loss_tot, err_tot, loss_tot_dev, err_tot_dev, err_tot_dev_snt))
 
         with open(output_folder + "/res.res", "a") as res_file:
-            res_file.write("epoch %i, loss_tr=%f err_tr=%f loss_te=%f err_te=%f err_te_snt=%f\n" % (
+            res_file.write("epoch %i, Training Loss=%f Training ERR=%f EVA Loss=%f EVA ERR=%f ERR EVA SENTENCE=%f\n" % (
                 epoch, loss_tot, err_tot, loss_tot_dev, err_tot_dev, err_tot_dev_snt))
 
         checkpoint = {'CNN_model_par': CNN_net.state_dict(),
@@ -462,4 +457,4 @@ for epoch in range(N_epochs):
         torch.save(checkpoint, output_folder + '/model_raw.pkl')
 
     else:
-        print("epoch %i, loss_tr=%f err_tr=%f" % (epoch, loss_tot, err_tot))
+        print("epoch %i, Training Loss=%f Training ERR=%f" % (epoch, loss_tot, err_tot))

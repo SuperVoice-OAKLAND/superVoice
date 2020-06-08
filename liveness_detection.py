@@ -41,3 +41,8 @@ def determine(file):
     else:
         print('This is a Machine')
         return 1
+
+
+if __name__ == '__main__':
+    file = ""
+    determine(file)

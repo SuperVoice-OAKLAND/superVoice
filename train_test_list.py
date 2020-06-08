@@ -1,6 +1,7 @@
 import glob
 import random
 import numpy as np
+import os
 
 ########################################################################################
 # Speaker 3-12 as training speaker pool,
@@ -10,16 +11,37 @@ import numpy as np
 # the rest of 7 sentences will be used to test.
 ########################################################################################
 
+def mapTohigh(lowscp):
+    output = lowscp.split('/')
+    c = 'HIGH'+output[1][3:]
+    output[1] = c
+    high = "/".join(output)
+    f_high = open(high, 'w')
+    with open(lowscp) as f:
+        lines = f.readlines()
+    for line in lines:
+        # print(line.split('/'))
+        olist = line.split('/')
+        olist[-3] = "dataset_1"
+        olist[-1] = olist[-1][:-8] + "high" + "cut.wav\n"
+        npath = "/".join(olist)
+        f_high.write(npath)
+    f_high.close()
 
 if __name__ == '__main__':
-    files = glob.glob("/home/hanqing/1ASpeakerRecognition/ultraData/*/bad/*cut.wav")
-    ftrain = open("highbad/train15_highbad.scp", "w")
-    ftest = open("highbad/test7_highbad.scp", "w")
-    train_sent = 18
-    test_sent = 7
+    files = glob.glob("../oakland-dataset/lowfrequency/*/*cut.wav")
+    trainpool_train = "prepare/LOW_trainpool_train.scp"
+    trainpool_validation = "prepare/LOW_trainpool_validation.scp"
+    testpool_enroll = "prepare/LOW_testpool_enroll.scp"
+    testpool_verify = "prepare/LOW_testpool_verify.scp"
+
+    ftrain = open(trainpool_train, "w")
+    ftest = open(trainpool_validation, "w")
+    train_sent = 5
+    test_sent = 20
     enroll_sent = 3
-    fenroll = open("highbad/enroll3_highbad.scp", "w")
-    fverify = open("highbad/verify22_highbad.scp", "w")
+    fenroll = open(testpool_enroll, "w")
+    fverify = open(testpool_verify, "w")
     #######################################################################################
     # train_pool contains train_utter and test_utter.
     # They will use to training procedue (Speaker_id.py)
@@ -38,9 +60,9 @@ if __name__ == '__main__':
     test_labels = {}
 
     for file in files:
-        speakerId = int(file.split("/")[-3])
+        speakerId = int(file.split("/")[-2])
 
-        if speakerId < 13:  # Means in training speaker pool
+        if speakerId < 11:  # Means in training speaker pool
             if speakerId not in train_pool.keys():
                 train_pool[speakerId] = []
             train_pool[speakerId].append(file)
@@ -66,7 +88,7 @@ if __name__ == '__main__':
             ftest.write(utter+"\n")
 
     npLab = np.array(labels)
-    np.save('highbad/highbad.npy', npLab)
+    np.save('prepare/LOW_trainpool_labels.npy', npLab)
 
 
     for k, v in test_pool.items():
@@ -85,4 +107,12 @@ if __name__ == '__main__':
             fverify.write(utter+"\n")
 
     npEnrollLab = np.array(test_labels)
-    np.save('highbad/highbad3_verify.npy', npEnrollLab)
+    np.save('prepare/LOW_testpool_labels.npy', npEnrollLab)
+    ftrain.close()
+    ftest.close()
+    fenroll.close()
+    fverify.close()
+    mapTohigh(trainpool_train)
+    mapTohigh(trainpool_validation)
+    mapTohigh(testpool_enroll)
+    mapTohigh(testpool_verify)

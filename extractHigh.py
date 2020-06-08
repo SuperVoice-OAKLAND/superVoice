@@ -91,7 +91,7 @@ hve_arr = {}
 
 low_freq = 8000
 high_freq = 16000
-target_folder = 'enroll10-2/'
+target_folder = 'prepare/'
 
 print("###############################Extract Train################\n")
 for idx, htr in enumerate(htr_lst):

@@ -1,3 +1,12 @@
+"""
+Reference:
+Mirco
+Ravanelli, Yoshua
+Bengio,
+"Speaker Recognition from raw waveform with SincNet".
+https: // arxiv.org / abs / 1808.00158
+"""
+
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -42,11 +51,6 @@ class SincConv_fast(nn.Module):
     Usage
     -----
     See `torch.nn.Conv1d`
-    Reference
-    ---------
-    Mirco Ravanelli, Yoshua Bengio,
-    "Speaker Recognition from raw waveform with SincNet".
-    https://arxiv.org/abs/1808.00158
     """
 
     @staticmethod
@@ -439,7 +443,7 @@ class SincNet(nn.Module):
 
         return x
 
-
+# This model used to extract high frequency features
 class highCNN(nn.Module):
     def __init__(self, resNet):
         super(highCNN, self).__init__()

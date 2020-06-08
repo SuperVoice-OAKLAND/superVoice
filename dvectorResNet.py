@@ -1,5 +1,4 @@
 
-
 import os
 import soundfile as sf
 import torch
@@ -28,7 +27,7 @@ def sampleToind(beg_samp, end_samp):
     return ind_beg, ind_end
 
 
-folder = 'enroll10-2'
+folder = 'prepare'
 model_folder = folder
 setting_folder = folder
 model_identifier = folder
@@ -36,25 +35,22 @@ model_identifier = folder
 cfg = 'SincNet_combine_apply8-16.cfg'
 
 enroll_or_verify = 'enroll'
-global_path = '/home/hanqing/1ASpeakerRecognition/SincNet/'
+global_path = ''
 # Model to use for computing the d-vectors
-model_file = global_path + 'exp/'+model_folder+'/model_raw.pkl'
-cfg_file = global_path + 'cfg/'+cfg
+model_file = global_path + 'exp/ ' +model_folder +'/model_raw.pkl'
+cfg_file = global_path + 'cfg/ ' +cfg
 
 
-# model_file = '/home/hanqing/1ASpeakerRecognition/SincNet/exp/SincNet_joint_norm_new/model_raw.pkl'  # This is the model to use for computing the d-vectors (it should be pre-trained using the speaker-id DNN)
-# cfg_file = '/home/hanqing/1ASpeakerRecognition/SincNet/cfg/SincNet_combine_apply8-16.cfg'  # Config file of the speaker-id experiment used to generate the model
 # convert which speakers to d_vector?
 # enroll_lowbad.scp
 # Or
 # verify_highbad.scp
-te_lst = global_path+setting_folder+'/'+enroll_or_verify+'_joint_low.scp'
-hte_lst = global_path+setting_folder+'/'+enroll_or_verify+'_joint_high.scp'
 
-# te_lst = '/home/hanqing/1ASpeakerRecognition/SincNet/Low_8to16k/verify_joint_low.scp'  # List of the wav files to process
-# hte_lst = '/home/hanqing/1ASpeakerRecognition/SincNet/Low_8to16k/verify_joint_high.scp' # List of the high frequency process
+te_lst = global_path +setting_folder +'/LOW_testpool' +enroll_or_verify +'.scp'
+hte_lst = global_path +setting_folder +'/HIGH_testpool' +enroll_or_verify +'.scp'
 
-out_dict_file = './d_vectors/'+enroll_or_verify+'_'+model_identifier
+
+out_dict_file = './d_vectors/ ' +enroll_or_verify +'_ ' +model_identifier
 # out_dict_file = './d_vectors/d_vect_joint_verify_norm_new.npy'  # output dictionary containing the a sentence id as key as the d-vector as value
 
 
@@ -203,7 +199,7 @@ d_vect_dict = {}
 def Hfeature_normalize(data):
     mu = torch.mean(data)
     std = torch.std(data)
-    return (data - mu)/std
+    return (data - mu ) /std
 
 with torch.no_grad():
     for i in range(snt_te):
@@ -266,9 +262,9 @@ with torch.no_grad():
         while end_samp < signal.shape[0]:
             sig_arr[count_fr, :] = signal[beg_samp:end_samp]
             ind_beg, ind_end = sampleToind(beg_samp, end_samp)
-            while(ind_end > hinp.shape[1]):
+            whil e(ind_end > hinp.shape[1]):
                 ind_beg = ind_beg -1
-                ind_end = ind_end -1
+                ind_end = ind_end - 1
             hframe[count_fr, 0, :, :] = hinp[:, ind_beg:ind_end]
 
             beg_samp = beg_samp + wshift
@@ -285,7 +281,7 @@ with torch.no_grad():
                 dvects[count_fr_tot - Batch_dev:count_fr_tot, :] = DNN1_net(emb)
                 count_fr = 0
                 sig_arr = torch.zeros([Batch_dev, wlen]).float().to(device).contiguous()
-                hframe = np.zeros([Batch_dev, 1, 86 , 75])
+                hframe = np.zeros([Batch_dev, 1, 86, 75])
 
         if count_fr > 0:
             inp = Variable(sig_arr[0:count_fr])
@@ -301,7 +297,7 @@ with torch.no_grad():
 
         # averaging and normalizing all the d-vectors
         d_vect_out = torch.mean(dvects / dvects.norm(p=2, dim=1).view(-1, 1), dim=0)
-        print(time.time()-start)
+        print(time.time() - start)
 
         # checks for nan
         nan_sum = torch.sum(torch.isnan(d_vect_out))
@@ -311,7 +307,7 @@ with torch.no_grad():
             sys.exit(0)
 
         # saving the d-vector in a numpy dictionary
-        #dict_key = wav_lst_te[i].split('/')[-2] + '/' + wav_lst_te[i].split('/')[-1]
+        # dict_key = wav_lst_te[i].split('/')[-2] + '/' + wav_lst_te[i].split('/')[-1]
         dict_key = wav_lst_te[i]
         d_vect_dict[dict_key] = d_vect_out.cpu().numpy()
         print(dict_key)

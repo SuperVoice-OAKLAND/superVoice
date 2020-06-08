@@ -11,7 +11,6 @@ import sys
 import glob
 import pathlib
 
-print(sys.argv)
 
 
 class VoiceActivityDetection:
@@ -41,17 +40,16 @@ class VoiceActivityDetection:
         result = True
         threshold = 0.25
         thd = numpy.min(frame) + numpy.ptp(frame) * threshold
-        self.__VADthd = (self.__VADn * self.__VADthd + thd) / float(self.__VADn + 1.)  # 添加全局自适应
+        self.__VADthd = (self.__VADn * self.__VADthd + thd) / float(self.__VADn + 1.)
         self.__VADn += 1.
 
         # print("Mean is {}\n thd is {}".format(numpy.mean(frame), self.__VADthd))
         if numpy.mean(frame) <= self.__VADthd:
-            self.__silence_counter += 1  # 当前frame小于thd, 则全局+1
+            self.__silence_counter += 1
         else:
-            self.__silence_counter = 0  # 当前frame大于thd, 则全局归0
+            self.__silence_counter = 0
 
-        if self.__silence_counter > 25:  # Global variable 连续25个frame,即 25*400=10k 个sample都符合，则剥离当前的frame,
-                                         # 直到 某一个时刻 silence counter 归0
+        if self.__silence_counter > 25:
             result = False
         return result
 
@@ -100,19 +98,10 @@ class VoiceActivityDetection:
 
 
 if __name__ == '__main__':
-    # low_files = glob.glob("/home/hanqing/1ASpeakerRecognition/16kHzUltradata/*/bad/*.wav")
-    # # print(low_files)
-    # for file in low_files:
-    #     wav = wf.read(file)
-    #     sr = wav[0]
-    #     c0 = wav[1]
-    #     vad = VoiceActivityDetection()
-    #     vad.process(c0)
-    #     voice_samples = vad.get_voice_samples()
-    #     outfile = file[:-4] + "cut.wav"
-    #     wf.write(outfile, sr, voice_samples)
-    low_files = glob.glob("/home/hanqing/1ASpeakerRecognition/16kHzUltradata/*/bad/*.wav")
-    high_files = glob.glob("/home/hanqing/1ASpeakerRecognition/ultraData/*/bad/*.wav")
+    low_files = glob.glob("../oakland-dataset/lowfrequency/*/*.wav")
+    high_files = glob.glob("../oakland-dataset/dataset_1/*/*.wav")
+    print(low_files)
+    print(high_files)
     i=0
     for low_file, high_file in zip(low_files, high_files):
         wav = wf.read(low_file)
@@ -130,18 +119,4 @@ if __name__ == '__main__':
         houtfile = high_file[:-4] + "highcut.wav"
         wf.write(houtfile, hsr, hvoice_samples)
 
-        print(i)
         i = i + 1
-
-    # file = "/home/hanqing/1ASpeakerRecognition/16kHzUltradata/3/bad/1.wav"
-    # hfile = "/home/hanqing/1ASpeakerRecognition/ultraData/3/bad/1.wav"
-
-    #
-    # vad = VoiceActivityDetection()
-    # vad.process(c0, hc0)
-    # voice_samples, hvoice_samples = vad.get_voice_samples()
-    # outfile = file[:-4] + "TESTcut.wav"
-    # wf.write(outfile, sr, voice_samples)
-    #
-    # houtfile = hfile[:-4] + "TESTcut.wav"
-    # wf.write(houtfile, hsr, hvoice_samples)
